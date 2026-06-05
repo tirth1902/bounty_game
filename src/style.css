@@ -1,0 +1,431 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.App {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px 20px 32px;
+}
+
+.header {
+    max-width: 210px;
+    justify-content: center;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+
+.App a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 16px 0 12px;
+}
+
+button,
+input,
+select {
+    font: inherit;
+    border: 1px solid #000000;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 16px;
+    cursor: pointer;
+    background: #ffffff;
+}
+
+.add-round-button,
+.secondary-button {
+    width: fit-content;
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1px solid #000000;
+}
+
+.add-round-button {
+    margin-top: 4px;
+    color: #000000;
+}
+
+.Login,
+.PlayerDashboard,
+.AdminDashboard {
+    background: #ffffff;
+    padding: 20px;
+    border: 1px solid #000000;
+    border-radius: 8px;
+}
+
+.Login {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.Login form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.Login input,
+.Login select {
+    width: 100%;
+    padding: 10px 12px;
+}
+
+.login-button,
+.register,
+.dashboard-subtitle,
+.eyebrow {
+    text-align: center;
+}
+
+.register {
+    margin-top: 12px;
+}
+
+.register a {
+    color: #1f4ed8;
+}
+
+.logout {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+.AdminDashboard {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.admin-page {
+    width: 100%;
+    margin: 0;
+    padding: 12px;
+    display: grid;
+    gap: 16px;
+}
+
+.admin-hero {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.hero-copy {
+    display: grid;
+    gap: 6px;
+}
+
+.hero-copy h2 {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hero-badges span {
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.top-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+
+.info-card,
+.admin-form-box,
+.chance-card,
+.result-box div {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.info-card {
+    padding: 12px;
+    border-radius: 6px;
+    background: #ffffff;
+    display: grid;
+    gap: 6px;
+    text-align: center;
+    border: 1px solid black;
+}
+
+.info-card span,
+.result-box span,
+.chance-card h4 {
+    color: #6b7280;
+}
+
+.info-card strong,
+.result-box strong {
+    font-size: 18px;
+    color: #1f2937;
+}
+
+.admin-section {
+    display: grid;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.admin-section--split {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: 16px;
+    align-items: start;
+    border-top: none;
+    padding-top: 0;
+}
+
+.admin-form-box {
+    display: grid;
+    gap: 12px;
+    text-align: left;
+    padding: 0;
+}
+
+.full-width-box {
+    width: 100%;
+}
+
+.field-group {
+    display: grid;
+    gap: 6px;
+}
+
+.field-group label {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.field-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.admin-summary-card {
+    padding: 16px;
+    border-radius: 6px;
+    background: #ffffff;
+}
+
+.chances-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.chance-card {
+    padding: 16px;
+    border-radius: 6px;
+    background: #ffffff;
+}
+
+.chance-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.chance-card-head h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.chance-card-head span {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: #f9fafb;
+}
+
+.cells-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.cells-grid input {
+    width: 100%;
+    min-height: 54px;
+    padding: 14px 10px;
+    border-radius: 4px;
+    background: #ffffff;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.result-box {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.result-box div {
+    padding: 12px;
+    display: grid;
+    gap: 6px;
+}
+
+.eyebrow {
+    margin: 0;
+    font-size: 16px;
+}
+
+.dashboard-subtitle {
+    margin: 0;
+    color: #6b7280;
+}
+
+.rounds-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.round-item {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.round-item h4 {
+    margin: 0 0 10px;
+}
+
+.round-item p {
+    margin: 5px 0;
+}
+
+.round-left {
+    margin-bottom: 10px;
+}
+
+.round-left span {
+    font-weight: 600;
+}
+
+.round-right {
+    margin-top: 8px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.status-badge--win {
+    background: #e8f5e9;
+}
+
+.status-badge--loss {
+    background: #fdecea;
+}
+
+.status-badge--pending {
+    background: #f3f4f6;
+}
+
+.reveal-btn {
+    margin-top: 10px;
+    padding: 8px 15px;
+    border: 1px solid black;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.winning-result {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 15px;
+}
+
+.users-page {
+    padding: 20px;
+}
+
+.users-page h2 {
+    margin-bottom: 20px;
+}
+
+.user-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.user-card p {
+    margin: 5px 0;
+}
+
+.rounds-page {
+    padding: 20px;
+}
+
+.round-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.round-card p {
+    margin: 5px 0;
+}
+
+.admin-nav button {
+    margin: 0 0 0 10px;
+}
