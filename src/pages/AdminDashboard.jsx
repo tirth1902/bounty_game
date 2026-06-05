@@ -17,10 +17,13 @@ function AdminDashboard() {
   const [currentUser] = useState(() =>
     JSON.parse(sessionStorage.getItem("currentUser") || "null"),
   );
+
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+
   const [allRounds, setAllRounds] = useState(() =>
     JSON.parse(localStorage.getItem("bountyRounds") || "[]"),
   );
+
   const [roundForm, setRoundForm] = useState({
     roundTitle: "",
     revealTime: "",
@@ -37,6 +40,7 @@ function AdminDashboard() {
       new Date(round.revealTime).getTime() > currentTime &&
       !round.resultRevealed,
   );
+
   const activeRound =
     activeBounties.length > 0
       ? activeBounties[activeBounties.length - 1]
@@ -52,7 +56,9 @@ function AdminDashboard() {
 
   const revealDueRounds = useCallback(() => {
     const latestTime = Date.now();
+
     const rounds = JSON.parse(localStorage.getItem("bountyRounds") || "[]");
+
     const nextRounds = rounds.map((round) => {
       const revealTime = new Date(round.revealTime).getTime();
       const shouldReveal =
@@ -192,25 +198,6 @@ function AdminDashboard() {
           </div>
         </div>
 
-        <div className="top-grid">
-          <div className="info-card">
-            <span>Balance</span>
-            <strong>₹ 1000</strong>
-          </div>
-          <div className="info-card">
-            <span>Chances</span>
-            <strong>6</strong>
-          </div>
-          <div className="info-card">
-            <span>Active round</span>
-            <strong>{activeRound?.roundTitle || "None"}</strong>
-          </div>
-          <div className="info-card">
-            <span>Payout</span>
-            <strong>10x</strong>
-          </div>
-        </div>
-
         <div className="admin-section admin-section--split">
           <div>
             <h3>Round Setup</h3>
@@ -287,7 +274,8 @@ function AdminDashboard() {
                   onClick={() => setSelectedBetPreview(bet)}
                 >
                   <span>User Placed Bet</span>
-                  <strong>{bet.username}</strong>
+                  <strong> {bet.username}</strong>
+                  <small>Round: {bet.roundTitle}</small>
                   <small>Stake: ₹{bet.stakeAmount}</small>
                 </div>
               ))}

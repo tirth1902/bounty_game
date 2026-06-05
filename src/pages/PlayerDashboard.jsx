@@ -5,17 +5,23 @@ import { getBetHistory, getUserBalance, settleBetResults } from "../utils/game";
 
 function PlayerDashboard() {
   const navigate = useNavigate();
+
   const [currentUser] = useState(() =>
     JSON.parse(sessionStorage.getItem("currentUser") || "null"),
   );
+
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+
   const [allRounds, setAllRounds] = useState(() =>
     JSON.parse(localStorage.getItem("bountyRounds") || "[]"),
   );
+
   const [selectedRoundId, setSelectedRoundId] = useState(null);
+
   const [balance, setBalance] = useState(() =>
     currentUser ? getUserBalance(currentUser.username) : 1000,
   );
+
   const [betHistory, setBetHistory] = useState(() =>
     currentUser ? getBetHistory(currentUser.username) : [],
   );
@@ -81,7 +87,11 @@ function PlayerDashboard() {
             <div className="top-grid selector-grid">
               {activeRounds.map((round) => (
                 <div
-                  className={`info-card selection-card ${selectedRound?.id === round.id ? "selection-card--active" : ""}`}
+                  className={`info-card selection-card ${
+                    selectedRound?.id === round.id
+                      ? "selection-card--active"
+                      : ""
+                  }`}
                   key={round.id}
                   onClick={() => setSelectedRoundId(round.id)}
                 >
@@ -135,6 +145,10 @@ function PlayerDashboard() {
                       <p>
                         Stake:
                         <span> Rs {bet.stakeAmount}</span>
+                      </p>
+                      <p>
+                        Winning Number:
+                        <span>{}</span>
                       </p>
                     </div>
 

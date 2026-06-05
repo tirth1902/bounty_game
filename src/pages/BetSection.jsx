@@ -131,7 +131,6 @@ function BetSection({
   const handleSubmitBet = () => {
     if (hasPlacedBet) return;
 
-
     const errors = validateBetForm(playerPicks, stakeAmount, balance);
     setPickErrors(errors);
     if (errors.length > 0) return;
