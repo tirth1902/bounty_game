@@ -57,6 +57,7 @@ button {
 .secondary-button {
     width: fit-content;
     padding: 10px 14px;
+    margin-top: 10px;
     background: #ffffff;
     border: 1px solid #000000;
 }

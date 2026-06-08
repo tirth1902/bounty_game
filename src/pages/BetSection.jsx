@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   allowOnlyDigits,
   cleanPickValue,
@@ -108,6 +108,16 @@ function BetSection({
   );
   const [hasPlacedBet, setHasPlacedBet] = useState(Boolean(savedBet));
 
+  useEffect(() => {
+    if (!pickStatus) return undefined;
+
+    const timer = setTimeout(() => {
+      setPickStatus("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [pickStatus]);
+
   const handlePickChange = (chanceIndex, cellIndex, value) => {
     if (hasPlacedBet) return;
 
@@ -148,6 +158,10 @@ function BetSection({
       picks: playerPicks,
     });
 
+    setPlayerPicks(createEmptyPicks());
+    setStakeAmount("");
+    setStakeError("");
+    setPickErrors([]);
     setHasPlacedBet(true);
     setPickStatus("Bet successfully placed! Balance updated.");
     setBetHistory(getBetHistory(currentUser.username));
@@ -173,15 +187,11 @@ function BetSection({
 
       <div className="top-grid">
         <div className="info-card">
-          <span>Your Balance</span>
-          <strong>Rs {balance}</strong>
-        </div>
-        <div className="info-card">
           <span>Active Stake</span>
           <strong>{stakeAmount ? `Rs ${stakeAmount}` : "Enter stake"}</strong>
         </div>
         <div className="info-card">
-          <span>Win (10x)</span>
+          <span>Win</span>
           <strong>{projectedPayout ? `Rs ${projectedPayout}` : "--"}</strong>
         </div>
         <div className="info-card">

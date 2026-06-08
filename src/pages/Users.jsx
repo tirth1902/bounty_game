@@ -38,6 +38,29 @@ function Users() {
     }
   };
 
+  const handleResetBalance = (targetUsername) => {
+    if (
+      !window.confirm(
+        `Reset balance for "${targetUsername}" back to 1000?`,
+      )
+    ) {
+      return;
+    }
+
+    const updated = users.map((user) =>
+      user.username === targetUsername ? { ...user, balance: 1000 } : user,
+    );
+
+    syncStorage(updated);
+
+    if (currentUser?.username === targetUsername) {
+      sessionStorage.setItem(
+        "currentUser",
+        JSON.stringify({ ...currentUser, balance: 1000 }),
+      );
+    }
+  };
+
   return (
     <div className="AdminDashboard">
       <div className="admin-page">
@@ -64,17 +87,27 @@ function Users() {
                 <div className="chance-card" key={user.username}>
                   <div className="chance-card-head">
                     <h4>{user.username}</h4>
-                    {user.username === currentUser?.username && <span>(You)</span>}
+                    {user.username === currentUser?.username && (
+                      <span>(You)</span>
+                    )}
                   </div>
 
                   <div className="user-card-content">
                     <div>
                       <p>
-                        <strong>Balance:</strong> ₹{user.balance}
+                        <strong>Balance:</strong> Rs {user.balance}
                       </p>
                       <p>
                         <strong>Role:</strong> {user.role}
                       </p>
+
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => handleResetBalance(user.username)}
+                      >
+                        Reset Balance
+                      </button>
 
                       <button
                         type="button"
@@ -85,7 +118,7 @@ function Users() {
                         Delete User
                       </button>
                     </div>
-                  </div>
+              </div>
                 </div>
               ))}
             </div>

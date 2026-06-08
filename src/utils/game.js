@@ -8,11 +8,11 @@ export function createEmptyPicks() {
 }
 
 export function cleanPickValue(value) {
-  return value.replace(/[^0-9]/g, "").slice(0, 2);
+  return value.replace(/\D/g, "").slice(0, 2);
 }
 
 export function cleanStakeValue(value) {
-  return value.replace(/[^0-9]/g, "");
+  return value.replace(/\D/g, "");
 }
 
 export function allowOnlyDigits(e) {
@@ -75,10 +75,15 @@ export function getBetHistory(username) {
         `bountyResult_${username}_${bet.roundId}`,
         null,
       );
+      const rounds = readStorage("bountyRounds", []);
+      const round = rounds.find(
+        (item) => String(item.id) === String(bet.roundId),
+      );
 
       return {
         ...bet,
         outcome: result?.outcome || "Pending",
+        winningNumber: result?.winningNumber || round?.winningNumber || "--",
       };
     })
     .sort((a, b) => b.roundId - a.roundId);
@@ -121,6 +126,7 @@ export function settleBetResults(username, rounds) {
       outcome: finalResult,
       stake: bet.stakeAmount,
       roundId: bet.roundId,
+      winningNumber: round.winningNumber,
     });
   });
 }

@@ -46,6 +46,24 @@ function AdminDashboard() {
       ? activeBounties[activeBounties.length - 1]
       : null;
 
+  const activeRounds = [...activeBounties].sort(
+    (a, b) =>
+      new Date(a.revealTime).getTime() - new Date(b.revealTime).getTime(),
+  );
+
+  const finishedRounds = allRounds
+    .filter((round) => {
+      const revealTime = new Date(round.revealTime).getTime();
+      return (
+        round.resultRevealed ||
+        (Number.isFinite(revealTime) && revealTime <= currentTime)
+      );
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.revealTime).getTime() - new Date(a.revealTime).getTime(),
+    );
+
   const settleAllPlayerBets = useCallback((rounds) => {
     getUsers()
       .filter((user) => user.role === "player")
@@ -135,6 +153,19 @@ function AdminDashboard() {
     const interval = setInterval(revealDueRounds, 1000);
     return () => clearInterval(interval);
   }, [revealDueRounds]);
+
+  useEffect(() => {
+    const hasMessages = formStatus || Object.keys(formErrors).length > 0;
+
+    if (!hasMessages) return undefined;
+
+    const timer = setTimeout(() => {
+      setFormStatus("");
+      setFormErrors({});
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [formErrors, formStatus]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("currentUser");
@@ -264,12 +295,54 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-section">
-          <h3>Users Placed Bets (Active Round)</h3>
+          <h3>Active Rounds</h3>
+          {activeRounds.length > 0 ? (
+            <div className="rounds-list">
+              {activeRounds.map((round) => (
+                <div className="round-item" key={round.id}>
+                  <div className="round-left">
+                    <h4>{round.roundTitle}</h4>
+                    <p>
+                      Reveal Time:
+                      <span> {formatRevealTime(round.revealTime)}</span>
+                    </p>
+                    <p>
+                      Status:
+                      <span> Live / Active</span>
+                    </p>
+                  </div>
+
+                  <div className="round-right">
+                    <div className="winning-result">
+                      Winning Number: Hidden until round ends
+                    </div>
+                    <button
+                      className="reveal-btn"
+                      type="button"
+                      onClick={() => revealResult(round.id)}
+                    >
+                      Reveal Result Manually
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">No active rounds right now.</p>
+          )}
+        </div>
+
+        <div className="admin-section">
+          <h3>Users Placed Bets</h3>
           {activeRoundBets.length > 0 ? (
             <div className="top-grid selector-grid">
               {activeRoundBets.map((bet) => (
                 <div
-                  className={`info-card selection-card ${selectedBetPreview?.username === bet.username ? "selection-card--active" : ""}`}
+                  className={`info-card selection-card ${
+                    selectedBetPreview?.username === bet.username
+                      ? "selection-card--active"
+                      : ""
+                  }`}
                   key={bet.username}
                   onClick={() => setSelectedBetPreview(bet)}
                 >
@@ -281,9 +354,7 @@ function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <p className="empty-state">
-              No bets have been recorded for this active pool yet.
-            </p>
+            <p className="empty-state">No bets have been recorded yet.</p>
           )}
         </div>
 
@@ -324,7 +395,7 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-section">
-          <h3>Result Reveal</h3>
+          <h3>Current Round Status</h3>
           <div className="result-box">
             <div>
               <span>Reveal status</span>
@@ -337,7 +408,7 @@ function AdminDashboard() {
               </strong>
             </div>
             <div>
-              <span>Result time</span>
+              <span>Round time</span>
               <strong>
                 {activeRound
                   ? formatRevealTime(activeRound.revealTime)
@@ -364,54 +435,46 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-section">
-          <h3>Created Rounds History</h3>
+          <h3>Finished Rounds</h3>
           <div className="rounds-list">
-            {allRounds.length > 0 ? (
-              allRounds.map((round) => {
-                const isEnded =
-                  new Date(round.revealTime).getTime() <= currentTime ||
-                  round.resultRevealed;
-
-                return (
-                  <div className="round-item" key={round.id}>
-                    <div className="round-left">
-                      <h4>{round.roundTitle}</h4>
-                      <p>
-                        Reveal Time:
-                        <span> {formatRevealTime(round.revealTime)}</span>
-                      </p>
-                      <p>
-                        Status:
-                        <span>
-                          {round.resultRevealed
-                            ? " Revealed"
-                            : isEnded
-                              ? " Ended / Past Deadline"
-                              : " Live / Active"}
-                        </span>
-                      </p>
-                    </div>
-
-                    <div className="round-right">
-                      {!round.resultRevealed ? (
-                        <button
-                          className="reveal-btn"
-                          type="button"
-                          onClick={() => revealResult(round.id)}
-                        >
-                          Reveal Result Manually
-                        </button>
-                      ) : (
-                        <div className="winning-result">
-                          Winning Number: {round.winningNumber}
-                        </div>
-                      )}
-                    </div>
+            {finishedRounds.length > 0 ? (
+              finishedRounds.map((round) => (
+                <div className="round-item" key={round.id}>
+                  <div className="round-left">
+                    <h4>{round.roundTitle}</h4>
+                    <p>
+                      Reveal Time:
+                      <span> {formatRevealTime(round.revealTime)}</span>
+                    </p>
+                    <p>
+                      Status:
+                      <span>
+                        {round.resultRevealed
+                          ? " Revealed"
+                          : " Finished / Waiting for reveal"}
+                      </span>
+                    </p>
                   </div>
-                );
-              })
+
+                  <div className="round-right">
+                    {round.resultRevealed ? (
+                      <div className="winning-result">
+                        Winning Number: {round.winningNumber}
+                      </div>
+                    ) : (
+                      <button
+                        className="reveal-btn"
+                        type="button"
+                        onClick={() => revealResult(round.id)}
+                      >
+                        Reveal Result Manually
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
             ) : (
-              <p className="empty-state">No round created yet.</p>
+              <p className="empty-state">No finished rounds yet.</p>
             )}
           </div>
         </div>

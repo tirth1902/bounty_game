@@ -81,6 +81,16 @@ function PlayerDashboard() {
         </div>
 
         <div className="admin-section">
+          <h3>Wallet Status</h3>
+          <div className="top-grid">
+            <div className="info-card">
+              <span>Your Balance</span>
+              <strong>Rs {balance}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-section">
           <h3>Choose Active Bounty Round</h3>
 
           {activeRounds.length > 0 ? (
@@ -148,7 +158,7 @@ function PlayerDashboard() {
                       </p>
                       <p>
                         Winning Number:
-                        <span>{}</span>
+                        <span> {bet.winningNumber || "--"}</span>
                       </p>
                     </div>
 
