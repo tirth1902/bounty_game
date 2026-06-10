@@ -5,74 +5,48 @@ import {
   cleanStakeValue,
   createEmptyPicks,
   getBetHistory,
+  getRoundOutcome,
+  getUserBetsForRound,
   isValidGameNumber,
   updateUserBalance,
   validateStakeAmount,
 } from "../utils/game";
-import { readStorage, writeStorage } from "../utils/storage";
+import { writeStorage } from "../utils/storage";
 
 function validateSingleRow(row, rowIndex) {
   const errors = [];
-  let rowHasValue = false;
 
-  for (let cellIndex = 0; cellIndex < row.length; cellIndex += 1) {
-    if (row[cellIndex].trim() !== "") {
-      rowHasValue = true;
-    }
-  }
+  const trimmedRow = row.map((cell) => cell.trim());
 
-  if (!rowHasValue) {
+  if (!trimmedRow.some(Boolean)) {
     return { errors, rowHasValue: false };
   }
 
-  for (let cellIndex = 0; cellIndex < row.length; cellIndex += 1) {
-    const currentValue = row[cellIndex].trim();
-
+  trimmedRow.forEach((currentValue, cellIndex) => {
     if (!isValidGameNumber(currentValue)) {
       errors.push(
         `Chance ${rowIndex + 1}, Cell ${cellIndex + 1} must be a number between 1 and 99.`,
       );
-      continue;
+      return;
     }
 
-    for (
-      let nextCellIndex = cellIndex + 1;
-      nextCellIndex < row.length;
-      nextCellIndex += 1
-    ) {
-      const nextValue = row[nextCellIndex].trim();
-      if (currentValue === nextValue) {
-        errors.push(
-          `Chance ${rowIndex + 1} contains a duplicate entry: "${currentValue}".`,
-        );
-        break;
-      }
+    if (trimmedRow.slice(cellIndex + 1).includes(currentValue)) {
+      errors.push(
+        `Chance ${rowIndex + 1} contains a duplicate entry: "${currentValue}".`,
+      );
     }
-  }
+  });
 
   return { errors, rowHasValue: true };
 }
 
 function validateBetForm(playerPicks, stakeAmount, balance) {
-  const errors = [];
-  let hasAtLeastOneFilledRow = false;
+  const rowValidation = playerPicks.map((row, rowIndex) =>
+    validateSingleRow(row, rowIndex),
+  );
+  const errors = rowValidation.flatMap((result) => result.errors);
 
-  for (let rowIndex = 0; rowIndex < playerPicks.length; rowIndex += 1) {
-    const rowValidation = validateSingleRow(playerPicks[rowIndex], rowIndex);
-    if (rowValidation.rowHasValue) {
-      hasAtLeastOneFilledRow = true;
-    }
-
-    for (
-      let errorIndex = 0;
-      errorIndex < rowValidation.errors.length;
-      errorIndex += 1
-    ) {
-      errors.push(rowValidation.errors[errorIndex]);
-    }
-  }
-
-  if (!hasAtLeastOneFilledRow) {
+  if (!rowValidation.some((result) => result.rowHasValue)) {
     errors.push("Please fill out at least one complete Chance card row.");
   }
 
@@ -92,21 +66,17 @@ function BetSection({
   setBalance,
   setBetHistory,
 }) {
-  const savedBet = readStorage(
-    `bountyEntry_${currentUser.username}_${selectedRound.id}`,
-    null,
-  );
-
-  const [playerPicks, setPlayerPicks] = useState(
-    () => savedBet?.picks || createEmptyPicks(),
-  );
-  const [stakeAmount, setStakeAmount] = useState(savedBet?.stakeAmount || "");
+  const [playerPicks, setPlayerPicks] = useState(() => createEmptyPicks());
+  const [stakeAmount, setStakeAmount] = useState("");
   const [stakeError, setStakeError] = useState("");
   const [pickErrors, setPickErrors] = useState([]);
-  const [pickStatus, setPickStatus] = useState(
-    savedBet ? "Your bet is locked in for this round." : "",
+  const [pickStatus, setPickStatus] = useState("");
+
+  const [betsInRound, setBetsInRound] = useState(() =>
+    getUserBetsForRound(currentUser.username, selectedRound.id).length,
   );
-  const [hasPlacedBet, setHasPlacedBet] = useState(Boolean(savedBet));
+
+  const hasNoBalance = balance <= 0;
 
   useEffect(() => {
     if (!pickStatus) return undefined;
@@ -119,9 +89,10 @@ function BetSection({
   }, [pickStatus]);
 
   const handlePickChange = (chanceIndex, cellIndex, value) => {
-    if (hasPlacedBet) return;
+    if (hasNoBalance) return;
 
     const updatedPicks = playerPicks.map((row) => [...row]);
+
     updatedPicks[chanceIndex][cellIndex] = cleanPickValue(value);
 
     setPlayerPicks(updatedPicks);
@@ -130,7 +101,7 @@ function BetSection({
   };
 
   const handleStakeChange = (e) => {
-    if (hasPlacedBet) return;
+    if (hasNoBalance) return;
 
     const value = cleanStakeValue(e.target.value);
     setStakeAmount(value);
@@ -139,18 +110,24 @@ function BetSection({
   };
 
   const handleSubmitBet = () => {
-    if (hasPlacedBet) return;
+    if (hasNoBalance) {
+      setPickStatus("You don't have enough balance to place a bet.");
+      return;
+    }
 
     const errors = validateBetForm(playerPicks, stakeAmount, balance);
     setPickErrors(errors);
     if (errors.length > 0) return;
 
+    const betId = Date.now();
+
     const newBalance = balance - Number(stakeAmount);
     updateUserBalance(currentUser.username, newBalance);
     setBalance(newBalance);
 
-    writeStorage(`bountyEntry_${currentUser.username}_${selectedRound.id}`, {
-      id: Date.now(),
+    const betKey = `bountyEntry_${currentUser.username}_${betId}`;
+    writeStorage(betKey, {
+      id: betId,
       username: currentUser.username,
       roundId: Number(selectedRound.id),
       roundTitle: selectedRound.roundTitle,
@@ -158,24 +135,29 @@ function BetSection({
       picks: playerPicks,
     });
 
+    setBetsInRound((currentCount) => currentCount + 1);
+
     setPlayerPicks(createEmptyPicks());
     setStakeAmount("");
     setStakeError("");
     setPickErrors([]);
-    setHasPlacedBet(true);
-    setPickStatus("Bet successfully placed! Balance updated.");
+    setPickStatus("Bet placed successfully! You can place another bet.");
     setBetHistory(getBetHistory(currentUser.username));
   };
 
   const projectedPayout = Number(stakeAmount) * 10;
+  const revealTime = new Date(selectedRound.revealTime).getTime();
   const isRevealReady =
-    selectedRound.resultRevealed ||
-    new Date(selectedRound.revealTime).getTime() <= currentTime;
-  const roundResult =
-    readStorage(
-      `bountyResult_${currentUser.username}_${selectedRound.id}`,
-      null,
-    )?.outcome || "";
+    selectedRound.resultRevealed || revealTime <= currentTime;
+  const roundResult = isRevealReady
+    ? getRoundOutcome(currentUser.username, selectedRound.id)
+    : "";
+  const resultOutcome = isRevealReady
+    ? roundResult || "Evaluating..."
+    : "Hidden until reveal";
+  const winningNumber = isRevealReady
+    ? selectedRound.winningNumber
+    : "Hidden until reveal";
 
   return (
     <>
@@ -198,6 +180,10 @@ function BetSection({
           <span>Reveal Deadline</span>
           <strong>{new Date(selectedRound.revealTime).toLocaleString()}</strong>
         </div>
+        <div className="info-card">
+          <span>Bets Placed</span>
+          <strong>{betsInRound}</strong>
+        </div>
       </div>
 
       <div className="admin-section">
@@ -208,7 +194,7 @@ function BetSection({
             <input
               type="text"
               inputMode="numeric"
-              disabled={hasPlacedBet}
+              disabled={hasNoBalance}
               placeholder="Enter amount"
               value={stakeAmount}
               onChange={handleStakeChange}
@@ -237,7 +223,7 @@ function BetSection({
                     inputMode="numeric"
                     maxLength={2}
                     placeholder="00"
-                    disabled={hasPlacedBet}
+                    disabled={hasNoBalance}
                     value={value}
                     onChange={(e) =>
                       handlePickChange(rowIndex, cellIndex, e.target.value)
@@ -254,9 +240,9 @@ function BetSection({
           type="button"
           className="add-round-button"
           onClick={handleSubmitBet}
-          disabled={hasPlacedBet}
+          disabled={hasNoBalance}
         >
-          {hasPlacedBet ? "Bet Locked In" : "Submit & Place Bet"}
+          {hasNoBalance ? "No Balance Left" : "Submit & Place Bet"}
         </button>
 
         {pickErrors.length > 0 && (
@@ -279,19 +265,11 @@ function BetSection({
         </div>
         <div>
           <span>Result Outcome</span>
-          <strong>
-            {isRevealReady
-              ? roundResult || "Evaluating..."
-              : "Hidden until reveal"}
-          </strong>
+          <strong>{resultOutcome}</strong>
         </div>
         <div>
           <span>Winning Number</span>
-          <strong>
-            {isRevealReady
-              ? selectedRound.winningNumber
-              : "Hidden until reveal"}
-          </strong>
+          <strong>{winningNumber}</strong>
         </div>
         <div>
           <span>Timeline Status</span>

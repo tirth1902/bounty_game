@@ -1,4 +1,4 @@
-import { formatRevealTime, isValidGameNumber } from "./game";
+import { formatRevealTime } from "./game";
 import { readStorage } from "./storage";
 
 export function validateRoundTitle(roundTitle) {
@@ -22,24 +22,13 @@ export function validateRevealTime(revealTime) {
   return "";
 }
 
-export function validateWinningNumber(winningNumber) {
-  if (winningNumber.trim() === "") {
-    return "Winning number is required.";
-  }
 
-  if (!isValidGameNumber(winningNumber)) {
-    return "Winning number must be from 1 to 99.";
-  }
-
-  return "";
-}
 
 export function validateRoundForm(values) {
   const errors = {};
 
   const roundTitleError = validateRoundTitle(values.roundTitle);
   const revealTimeError = validateRevealTime(values.revealTime);
-  const winningNumberError = validateWinningNumber(values.winningNumber);
 
   if (roundTitleError) {
     errors.roundTitle = roundTitleError;
@@ -47,10 +36,6 @@ export function validateRoundForm(values) {
 
   if (revealTimeError) {
     errors.revealTime = revealTimeError;
-  }
-
-  if (winningNumberError) {
-    errors.winningNumber = winningNumberError;
   }
 
   return errors;
@@ -63,6 +48,41 @@ export function getActiveRoundBets(roundId) {
     .filter((key) => key.startsWith("bountyEntry_"))
     .map((key) => readStorage(key, null))
     .filter((bet) => bet && String(bet.roundId) === String(roundId));
+}
+
+export function getAllRoundBets() {
+  const rounds = readStorage("bountyRounds", []);
+  const now = Date.now();
+
+  const allBets = Object.keys(localStorage)
+    .filter((key) => key.startsWith("bountyEntry_"))
+    .map((key) => readStorage(key, null))
+    .filter(Boolean);
+
+  return allBets.map((bet) => {
+    const round = rounds.find(
+      (r) => String(r.id) === String(bet.roundId),
+    );
+
+    const revealTime = round ? new Date(round.revealTime).getTime() : 0;
+    const isEnded =
+      round && (round.resultRevealed || revealTime <= now);
+
+    let outcome = "";
+    if (isEnded && bet.username) {
+      const resultKey = `bountyResult_${bet.username}_${bet.id}`;
+      const result = readStorage(resultKey, null);
+      if (result) {
+        outcome = result.outcome;
+      }
+    }
+
+    return {
+      ...bet,
+      isEnded,
+      outcome,
+    };
+  });
 }
 
 export { formatRevealTime };

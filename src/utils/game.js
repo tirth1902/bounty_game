@@ -64,6 +64,47 @@ export function updateUserBalance(username, newBalance) {
   writeStorage("users", updatedUsers);
 }
 
+export function getUserBetsForRound(username, roundId) {
+  if (!username || !roundId) return [];
+
+  return Object.keys(localStorage)
+    .filter((key) => key.startsWith(`bountyEntry_${username}_`))
+    .map((key) => readStorage(key, null))
+    .filter((bet) => bet && String(bet.roundId) === String(roundId));
+}
+
+export function getRoundOutcome(username, roundId) {
+  if (!username || !roundId) return "";
+
+  const bets = getUserBetsForRound(username, roundId);
+  if (bets.length === 0) return "";
+
+  let wins = 0;
+  let losses = 0;
+
+  for (let i = 0; i < bets.length; i += 1) {
+    const resultKey = `bountyResult_${username}_${bets[i].id}`;
+    const result = readStorage(resultKey, null);
+    if (result) {
+      if (result.outcome === "Win") {
+        wins = wins + 1;
+      } else {
+        losses = losses + 1;
+      }
+    }
+  }
+
+  if (wins === 0 && losses === 0) return "";
+
+  if (wins > 0 && losses === 0) {
+    return "Won (" + wins + " bet" + (wins > 1 ? "s" : "") + ")";
+  }
+  if (wins === 0 && losses > 0) {
+    return "Lost (" + losses + " bet" + (losses > 1 ? "s" : "") + ")";
+  }
+  return wins + " Win, " + losses + " Loss";
+}
+
 export function getBetHistory(username) {
   if (!username) return [];
 
@@ -71,10 +112,12 @@ export function getBetHistory(username) {
     .filter((key) => key.startsWith(`bountyEntry_${username}_`))
     .map((key) => {
       const bet = readStorage(key);
+
       const result = readStorage(
-        `bountyResult_${username}_${bet.roundId}`,
+        `bountyResult_${username}_${bet.id}`,
         null,
       );
+
       const rounds = readStorage("bountyRounds", []);
       const round = rounds.find(
         (item) => String(item.id) === String(bet.roundId),
@@ -86,7 +129,7 @@ export function getBetHistory(username) {
         winningNumber: result?.winningNumber || round?.winningNumber || "--",
       };
     })
-    .sort((a, b) => b.roundId - a.roundId);
+    .sort((a, b) => b.id - a.id);
 }
 
 export function settleBetResults(username, rounds) {
@@ -97,19 +140,22 @@ export function settleBetResults(username, rounds) {
     .map((key) => readStorage(key, null))
     .filter(Boolean);
 
-  userBets.forEach((bet) => {
-    const resultKey = `bountyResult_${username}_${bet.roundId}`;
+  for (let i = 0; i < userBets.length; i += 1) {
+    const bet = userBets[i];
+
+    const resultKey = `bountyResult_${username}_${bet.id}`;
     const existingResult = readStorage(resultKey, null);
-    if (existingResult) return;
+
+    if (existingResult) continue;
 
     const round = rounds.find(
       (currentRound) => String(currentRound.id) === String(bet.roundId),
     );
-    if (!round) return;
+    if (!round) continue;
 
     const revealTimePassed = new Date(round.revealTime).getTime() <= Date.now();
     const canShowResult = round.resultRevealed || revealTimePassed;
-    if (!canShowResult) return;
+    if (!canShowResult) continue;
 
     const isWin = bet.picks.some((row) =>
       row.includes(String(round.winningNumber)),
@@ -126,7 +172,8 @@ export function settleBetResults(username, rounds) {
       outcome: finalResult,
       stake: bet.stakeAmount,
       roundId: bet.roundId,
+      betId: bet.id,
       winningNumber: round.winningNumber,
     });
-  });
+  }
 }

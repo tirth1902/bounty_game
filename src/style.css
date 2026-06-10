@@ -430,3 +430,39 @@ button {
 .admin-nav button {
     margin: 0 0 0 10px;
 }
+
+.auto-pick-note {
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #000000;
+    background: #ffffff;
+    border: 1px dashed #000000;
+    border-radius: 4px;
+}
+
+.bet-outcome-label {
+    display: inline-block;
+    padding: 4px 8px;
+    margin-left: 25px;
+    width: 60px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.bet-outcome--win {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.bet-outcome--loss {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.bet-outcome--live {
+    background: #f3f4f6;
+    color: #6b7280;
+}

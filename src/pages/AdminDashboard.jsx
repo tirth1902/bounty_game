@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { allowOnlyDigits, settleBetResults } from "../utils/game";
+import { settleBetResults } from "../utils/game";
 import {
   formatRevealTime,
-  getActiveRoundBets,
+  getAllRoundBets,
   validateRoundForm,
 } from "../utils/rounds";
 import { getUsers } from "../utils/storage";
@@ -27,12 +27,12 @@ function AdminDashboard() {
   const [roundForm, setRoundForm] = useState({
     roundTitle: "",
     revealTime: "",
-    winningNumber: "",
   });
 
   const [formErrors, setFormErrors] = useState({});
   const [formStatus, setFormStatus] = useState("");
-  const [activeRoundBets, setActiveRoundBets] = useState([]);
+
+  const [allBets, setAllBets] = useState([]);
   const [selectedBetPreview, setSelectedBetPreview] = useState(null);
 
   const activeBounties = allRounds.filter(
@@ -128,21 +128,7 @@ function AdminDashboard() {
       setCurrentTime(now);
       setAllRounds(rounds);
 
-      const currentActiveBounties = rounds.filter(
-        (round) =>
-          new Date(round.revealTime).getTime() > now && !round.resultRevealed,
-      );
-      const currentActiveRound =
-        currentActiveBounties.length > 0
-          ? currentActiveBounties[currentActiveBounties.length - 1]
-          : null;
-
-      if (currentActiveRound) {
-        setActiveRoundBets(getActiveRoundBets(currentActiveRound.id));
-      } else {
-        setActiveRoundBets([]);
-        setSelectedBetPreview(null);
-      }
+      setAllBets(getAllRoundBets());
     };
 
     const interval = setInterval(syncAdminData, 1000);
@@ -187,11 +173,13 @@ function AdminDashboard() {
       return;
     }
 
+    const randomWinningNumber = Math.floor(Math.random() * 99) + 1;
+
     const newRound = {
       id: Date.now(),
       roundTitle: roundForm.roundTitle.trim(),
       revealTime: roundForm.revealTime,
-      winningNumber: roundForm.winningNumber.trim(),
+      winningNumber: String(randomWinningNumber),
       resultRevealed: false,
     };
 
@@ -200,12 +188,12 @@ function AdminDashboard() {
     localStorage.setItem("bountyRounds", JSON.stringify(nextRounds));
 
     setFormStatus("Round created successfully.");
-    setRoundForm({ roundTitle: "", revealTime: "", winningNumber: "" });
+    setRoundForm({ roundTitle: "", revealTime: "" });
   };
 
   return (
     <div className="AdminDashboard">
-      <div className="admin-page">
+      <div className="admin-page" onClick={() => setSelectedBetPreview(null)}>
         <div>
           <button type="button" onClick={() => navigate("/admin/users")}>
             Users
@@ -264,21 +252,11 @@ function AdminDashboard() {
               </div>
 
               <div className="field-group">
-                <label htmlFor="winningNumber">Winning number</label>
-                <input
-                  id="winningNumber"
-                  name="winningNumber"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={2}
-                  placeholder="1 to 99"
-                  value={roundForm.winningNumber}
-                  onChange={handleRoundChange}
-                  onKeyDown={allowOnlyDigits}
-                />
-                {formErrors.winningNumber && (
-                  <span className="form-error">{formErrors.winningNumber}</span>
-                )}
+                <label>Winning number</label>
+                <p className="auto-pick-note">
+                  Randomly picked from 1 to 99 when round is created, and Show
+                  only after reveal.
+                </p>
               </div>
 
               <button
@@ -332,24 +310,40 @@ function AdminDashboard() {
           )}
         </div>
 
-        <div className="admin-section">
+        <div className="admin-section" onClick={(e) => e.stopPropagation()}>
           <h3>Users Placed Bets</h3>
-          {activeRoundBets.length > 0 ? (
+          {allBets.length > 0 ? (
             <div className="top-grid selector-grid">
-              {activeRoundBets.map((bet) => (
+              {allBets.map((bet) => (
                 <div
                   className={`info-card selection-card ${
-                    selectedBetPreview?.username === bet.username
+                    selectedBetPreview?.id === bet.id
                       ? "selection-card--active"
                       : ""
                   }`}
-                  key={bet.username}
+                  key={bet.id}
                   onClick={() => setSelectedBetPreview(bet)}
                 >
                   <span>User Placed Bet</span>
                   <strong> {bet.username}</strong>
                   <small>Round: {bet.roundTitle}</small>
                   <small>Stake: ₹{bet.stakeAmount}</small>
+                  <small>Win No.: {bet.winningNumber || "--"}</small>
+                  {bet.isEnded ? (
+                    <span
+                      className={`bet-outcome-label ${
+                        bet.outcome === "Win"
+                          ? "bet-outcome--win"
+                          : "bet-outcome--loss"
+                      }`}
+                    >
+                      {bet.outcome === "Win" ? "Win" : "Loss"}
+                    </span>
+                  ) : (
+                    <span className="bet-outcome-label bet-outcome--live">
+                      LIVE
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -358,7 +352,7 @@ function AdminDashboard() {
           )}
         </div>
 
-        <div className="admin-section">
+        <div className="admin-section" onClick={(e) => e.stopPropagation()}>
           <h3>
             6 Chances Preview{" "}
             {selectedBetPreview && (

@@ -145,7 +145,7 @@ function PlayerDashboard() {
                 const outcomeClass = bet.outcome.toLowerCase();
 
                 return (
-                  <div className="round-item" key={bet.roundId}>
+                  <div className="round-item" key={bet.id}>
                     <div className="round-left">
                       <h4>{bet.roundTitle}</h4>
                       <p>
