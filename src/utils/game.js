@@ -162,9 +162,12 @@ export function settleBetResults(username, rounds) {
     );
     const finalResult = isWin ? "Win" : "Loss";
 
+    const stakeValue = Number(bet.stakeAmount);
     if (isWin) {
-      const newBalance =
-        getUserBalance(username) + Number(bet.stakeAmount) * 10;
+      const newBalance = getUserBalance(username) + stakeValue * 10;
+      updateUserBalance(username, newBalance);
+    } else {
+      const newBalance = getUserBalance(username) + stakeValue;
       updateUserBalance(username, newBalance);
     }
 

@@ -72,8 +72,8 @@ function BetSection({
   const [pickErrors, setPickErrors] = useState([]);
   const [pickStatus, setPickStatus] = useState("");
 
-  const [betsInRound, setBetsInRound] = useState(() =>
-    getUserBetsForRound(currentUser.username, selectedRound.id).length,
+  const [betsInRound, setBetsInRound] = useState(
+    () => getUserBetsForRound(currentUser.username, selectedRound.id).length,
   );
 
   const hasNoBalance = balance <= 0;
@@ -120,8 +120,9 @@ function BetSection({
     if (errors.length > 0) return;
 
     const betId = Date.now();
+    const stakeValue = Number(stakeAmount);
+    const newBalance = balance - stakeValue;
 
-    const newBalance = balance - Number(stakeAmount);
     updateUserBalance(currentUser.username, newBalance);
     setBalance(newBalance);
 
@@ -146,7 +147,9 @@ function BetSection({
   };
 
   const projectedPayout = Number(stakeAmount) * 10;
+
   const revealTime = new Date(selectedRound.revealTime).getTime();
+
   const isRevealReady =
     selectedRound.resultRevealed || revealTime <= currentTime;
   const roundResult = isRevealReady

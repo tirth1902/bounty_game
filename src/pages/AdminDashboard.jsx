@@ -4,6 +4,7 @@ import { settleBetResults } from "../utils/game";
 import {
   formatRevealTime,
   getAllRoundBets,
+  sanitizeRoundTitle,
   validateRoundForm,
 } from "../utils/rounds";
 import { getUsers } from "../utils/storage";
@@ -160,7 +161,9 @@ function AdminDashboard() {
 
   const handleRoundChange = (event) => {
     const { name, value } = event.target;
-    setRoundForm((prev) => ({ ...prev, [name]: value }));
+    const nextValue = name === "roundTitle" ? sanitizeRoundTitle(value) : value;
+
+    setRoundForm((prev) => ({ ...prev, [name]: nextValue }));
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -230,6 +233,8 @@ function AdminDashboard() {
                   placeholder="Enter round title"
                   value={roundForm.roundTitle}
                   onChange={handleRoundChange}
+                  inputMode="text"
+                  autoComplete="off"
                 />
                 {formErrors.roundTitle && (
                   <span className="form-error">{formErrors.roundTitle}</span>
@@ -369,7 +374,6 @@ function AdminDashboard() {
                 <div className="chance-card" key={chance}>
                   <div className="chance-card-head">
                     <h4>Chance {chance}</h4>
-                    <span>9 inputs</span>
                   </div>
                   <div className="cells-grid">
                     {CELLS.map((cell, cellIdx) => (

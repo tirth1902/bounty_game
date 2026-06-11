@@ -275,15 +275,6 @@ button {
     color: #1f2937;
 }
 
-.chance-card-head span {
-    font-size: 12px;
-    font-weight: 700;
-    color: #6b7280;
-    padding: 4px 8px;
-    border-radius: 4px;
-    background: #f9fafb;
-}
-
 .cells-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

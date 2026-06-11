@@ -1,9 +1,19 @@
 import { formatRevealTime } from "./game";
 import { readStorage } from "./storage";
 
+export function sanitizeRoundTitle(roundTitle) {
+  return roundTitle.replace(/^\s*\d+/, "");
+}
+
 export function validateRoundTitle(roundTitle) {
-  if (roundTitle.trim() === "") {
+  const cleanedTitle = roundTitle.trim();
+
+  if (cleanedTitle === "") {
     return "Round title is required.";
+  }
+
+  if (/^\d/.test(cleanedTitle)) {
+    return "Round title cannot start with a number.";
   }
 
   return "";
