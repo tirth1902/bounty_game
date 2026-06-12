@@ -32,8 +32,6 @@ export function validateRevealTime(revealTime) {
   return "";
 }
 
-
-
 export function validateRoundForm(values) {
   const errors = {};
 

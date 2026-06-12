@@ -122,11 +122,15 @@ export function getBetHistory(username) {
       const round = rounds.find(
         (item) => String(item.id) === String(bet.roundId),
       );
+      const revealTime = round ? new Date(round.revealTime).getTime() : 0;
+      const isEnded =
+        Boolean(round) &&
+        (round.resultRevealed || revealTime <= Date.now());
 
       return {
         ...bet,
         outcome: result?.outcome || "Pending",
-        winningNumber: result?.winningNumber || round?.winningNumber || "--",
+        winningNumber: result?.winningNumber || (isEnded ? round?.winningNumber : "--"),
       };
     })
     .sort((a, b) => b.id - a.id);

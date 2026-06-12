@@ -215,7 +215,6 @@ function BetSection({
             <div className="chance-card" key={rowIndex}>
               <div className="chance-card-head">
                 <h4>Chance {rowIndex + 1}</h4>
-                <span>9 inputs</span>
               </div>
 
               <div className="cells-grid">
